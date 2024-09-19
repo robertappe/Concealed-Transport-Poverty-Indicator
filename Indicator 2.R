@@ -1,6 +1,6 @@
 library("tidyverse")
 
-#Parte que vai baixar a base de DESPESA INDIVIDUAL:
+#Part that will lower the INDIVIDUAL EXPENSE base:
 #despesa_ind <- 
 #  read.fwf("DESPESA_INDIVIDUAL.txt" 
 #           , widths = c(2,4,1,9,2,1,2,2,2,7,2,10,2
@@ -18,13 +18,13 @@ library("tidyverse")
 #names(despesa_ind) <- tolower(names(despesa_ind)) # colocando em caixa baixa os nomes das variaveis
 #save(despesa_ind, file = "Despesa_Individual.RData") # salvando a base em formato R
 
-# vamos pegar os pesos amostrais 
+# lets get the sample weights 
 
-# Carregando a base:
+# Loading the base:
 load(file = "Despesa_Individual.RData")
 load(file = "Estratos_peso.RData")
 
-# Criar ID Domicilio ------------------------------------------------------
+# Create Home ID ------------------------------------------------------
 require(dplyr)
 
 despesa_ind$cod_upa=as.character(despesa_ind$cod_upa)
@@ -37,7 +37,7 @@ despesa_ind <- despesa_ind %>%
 #despesa_ind <- despesa_ind %>%
 #  dplyr::mutate(MoradorID = paste0(cod_upa, num_dom, num_uc,cod_informante, sep = ""))
 
-# filtrando as famílias que possuem os seguintes gastos:
+# filtering families that have the following expenses:
 #CÓDIGO DO PRODUTO: 2301401
 #DESCRIÇÃO DO PRODUTO: GASOLINA COMUM (COMBUSTIVEL DE VEICULO)
 #CÓDIGO DO PRODUTO: 2301501
@@ -69,12 +69,12 @@ base_gastos_comb=base_gastos_comb %>%
   ungroup()
 
 
-# Deixando na base somente a informação da primeira linha do domicílio:
+# Leaving only the information on the first line of the household in the database:
 base =  dplyr::distinct(base_gastos_comb,DomicilioID,.keep_all = TRUE)
 base <- base %>% 
   select(estrato_pof,uf,cod_upa,DomicilioID,gasto_total,renda_anual,peso,peso_final)
 
-###  Construindo o desenho amostral da base geral:
+###  Constructing the general base sampling design:
 library(survey)
 options(survey.lonely.psu = "adjust")
 base = merge(base, post_stratification_df)
@@ -88,7 +88,7 @@ desenho_amostral <-
     nest = TRUE
   )
  
-### Criar os decis de renda
+### Create income deciles
 
 decis <- svyquantile(~base$renda_anual, desenho_amostral, quantiles = seq(0.1, 1, by = 0.1))
 
@@ -112,13 +112,13 @@ base$decil<-ordered(base$decil, levels=c("1º Decil","2º Decil","3º Decil","4�
 
 #svyby(~base$renda_anual, ~base$decil, desenho_amostral,svymean, na.rm=TRUE)
 
-# calculo das medias sem a incorporação do desenho
+# calculation of averages without incorporating the drawing
 media_por_decil <- base %>% 
   group_by(decil) %>% 
   summarise(media_renda = mean(renda_anual, na.rm=TRUE), 
             media_gasto = mean(gasto_total, na.rm=TRUE))
 
-# Deixando na 1º decil
+# Leaving 1st decile
 base_d1 = base %>% 
   filter(decil == "1º Decil")
 base_d1 = merge(base_d1, post_stratification_df)
@@ -135,7 +135,7 @@ desenho_amostral1 <-
 m1=svymean(~base_d1$renda_anual, desenho_amostral1)
 mg1=svymean(~base_d1$gasto_total, desenho_amostral1)
 
-# Deixando na 2º decil
+# Leaving 2nd decile
 base_d2 = base %>% 
   filter(decil == "2º Decil")
 base_d2 = merge(base_d2, post_stratification_df)
@@ -152,7 +152,7 @@ desenho_amostral2 <-
 m2=svymean(~base_d2$renda_anual, desenho_amostral2)
 mg2=svymean(~base_d2$gasto_total, desenho_amostral2)
 
-# Deixando na 3º decil
+# Leaving 3rd decile
 base_d3 = base %>% 
   filter(decil == "3º Decil")
 base_d3 = merge(base_d3, post_stratification_df)
@@ -169,7 +169,7 @@ desenho_amostral3 <-
 m3=svymean(~base_d3$renda_anual, desenho_amostral3)
 mg3=svymean(~base_d3$gasto_total, desenho_amostral3)
 
-# Deixando na 4º decil
+# Leaving 4th decile
 base_d4 = base %>% 
   filter(decil == "4º Decil")
 base_d4 = merge(base_d4, post_stratification_df)
@@ -186,7 +186,7 @@ desenho_amostral4 <-
 m4=svymean(~base_d4$renda_anual, desenho_amostral4)
 mg4=svymean(~base_d4$gasto_total, desenho_amostral4)
 
-# Deixando na 5º decil
+# Leaving 5th decile
 base_d5 = base %>% 
   filter(decil == "5º Decil")
 base_d5 = merge(base_d5, post_stratification_df)
@@ -203,7 +203,7 @@ desenho_amostral5 <-
 m5=svymean(~base_d5$renda_anual, desenho_amostral5)
 mg5=svymean(~base_d5$gasto_total, desenho_amostral5)
 
-# Deixando na 6º decil
+# Leaving 6th decile
 base_d6 = base %>% 
   filter(decil == "6º Decil")
 base_d6 = merge(base_d6, post_stratification_df)
@@ -220,7 +220,7 @@ desenho_amostral6 <-
 m6=svymean(~base_d6$renda_anual, desenho_amostral6)
 mg6=svymean(~base_d6$gasto_total, desenho_amostral6)
 
-# Deixando na 7º decil
+# Leaving 7th decile
 base_d7 = base %>% 
   filter(decil == "7º Decil")
 base_d7 = merge(base_d7, post_stratification_df)
@@ -236,7 +236,8 @@ desenho_amostral7 <-
 
 m7=svymean(~base_d7$renda_anual, desenho_amostral7)
 mg7=svymean(~base_d7$gasto_total, desenho_amostral7)
-# Deixando na 8º decil
+
+# Leaving 8th decile
 base_d8 = base %>% 
   filter(decil == "8º Decil")
 base_d8 = merge(base_d8, post_stratification_df)
@@ -253,7 +254,7 @@ desenho_amostral8 <-
 m8=svymean(~base_d8$renda_anual, desenho_amostral8)
 mg8=svymean(~base_d8$gasto_total, desenho_amostral8)
 
-# Deixando na 9º decil
+# Leaving 9th decile
 base_d9 = base %>% 
   filter(decil == "9º Decil")
 base_d9 = merge(base_d9, post_stratification_df)
@@ -270,7 +271,7 @@ desenho_amostral9 <-
 m9=svymean(~base_d9$renda_anual, desenho_amostral9)
 mg9=svymean(~base_d9$gasto_total, desenho_amostral9)
 
-# Deixando na 10º decil
+# Leaving 10th decile
 base_d10 = base %>% 
   filter(decil == "10º Decil")
 base_d10 = merge(base_d10, post_stratification_df)
@@ -312,13 +313,13 @@ media_gasto=c(mg1[["base_d1$gasto_total"]][1],
 media_gasto=as.data.frame(media_gasto)
 
 
-# Pacote para salvar no excel
+# Package to save in excel
 #install.packages("openxlsx")
 library(openxlsx)
 
-# Crie um novo workbook
+# Create a new workbook
 wb <- createWorkbook()
-# Adicione várias planilhas com diferentes resultados
+# Add multiple sheets with different results
 addWorksheet(wb, "Resultado_1")
 writeData(wb, "Resultado_1", media_renda)
 
