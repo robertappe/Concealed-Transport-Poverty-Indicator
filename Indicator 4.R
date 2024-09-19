@@ -1,10 +1,10 @@
 library("tidyverse")
 
-# Carregando a base:
+# Loading the base:
 load(file = "Despesa_Individual.RData")
 load(file = "Estratos_peso.RData")
 
-# Criar ID Domicilio ------------------------------------------------------
+# Create Home ID ------------------------------------------------------
 require(dplyr)
 
 despesa_ind$cod_upa=as.character(despesa_ind$cod_upa)
@@ -37,12 +37,12 @@ base_gastos_transp=base_gastos_transp %>%
   ungroup()
 
 
-# Deixando na base somente a informação da primeira linha do domicílio:
+# Leaving only the information from the first line of the household in the database:
 base =  dplyr::distinct(base_gastos_transp,DomicilioID,.keep_all = TRUE)
 base <- base %>% 
   select(estrato_pof,uf,cod_upa,DomicilioID,gasto_total,renda_anual,peso,peso_final)
 
-###  Construindo o desenho amostral da base geral:
+###  Constructing the general base sampling design:
 library(survey)
 options(survey.lonely.psu = "adjust")
 base = merge(base, post_stratification_df)
@@ -62,11 +62,11 @@ desenho_amostral <-
 # options(surveytable.check_present = FALSE)
 # total()
 
-# Total de familias com gastos 
+# Total number of families with expenses
 desenho_amostral$variables$Total = 1
 svytotal(~ Total, desenho_amostral)
 
-# Mediana dos gastos de todas as familias
+# Median expenditure for all households
 mediana_total=svyquantile(~base$gasto_total, desenho_amostral, quantiles = 0.5)
 
 base_mediana = base %>% 
@@ -88,7 +88,7 @@ svytotal(~ Total, desenho_amostralmed)
 svymean(~gasto_total, desenho_amostralmed)
 
 
-### Criar os decis de renda
+### Create income deciles
 
 decis <- svyquantile(~base$renda_anual, desenho_amostral, quantiles = seq(0.1, 1, by = 0.1))
 
@@ -110,7 +110,7 @@ base$decil<-as.factor(base$decil)
 base$decil<-ordered(base$decil, levels=c("1º Decil","2º Decil","3º Decil","4º Decil","5º Decil",
                                                        "6º Decil","7º Decil","8º Decil","9º Decil","10º Decil"))
 
-# Deixando na 1º decil
+# Leaving 1st decile
 
 base_d1 = base %>% 
   filter(decil == "1º Decil")
@@ -148,7 +148,7 @@ tot_fam_med1=svytotal(~Total, desenho_amostral1)
 
 gastomedio_fam_med1=svymean(~gasto_total, desenho_amostral1)
 
-# Deixando na 2º decil
+# Leaving 2nd decile
 
 base_d2 = base %>% 
   filter(decil == "2º Decil")
@@ -186,7 +186,7 @@ tot_fam_med2=svytotal(~Total, desenho_amostral2)
 
 gastomedio_fam_med2=svymean(~gasto_total, desenho_amostral2)
 
-# Deixando na 3º decil
+# Leaving 3rd decile
 
 base_d3 = base %>% 
   filter(decil == "3º Decil")
@@ -224,7 +224,7 @@ tot_fam_med3=svytotal(~Total, desenho_amostral3)
 
 gastomedio_fam_med3=svymean(~gasto_total, desenho_amostral3)
 
-# Deixando na 4º decil
+# Leaving 4th decile
 
 base_d4 = base %>% 
   filter(decil == "4º Decil")
@@ -262,7 +262,7 @@ tot_fam_med4=svytotal(~Total, desenho_amostral4)
 
 gastomedio_fam_med4=svymean(~gasto_total, desenho_amostral4)
 
-# Deixando na 5º decil
+# Leaving 5th decile
 
 base_d5 = base %>% 
   filter(decil == "5º Decil")
@@ -300,7 +300,7 @@ tot_fam_med5=svytotal(~Total, desenho_amostral5)
 
 gastomedio_fam_med5=svymean(~gasto_total, desenho_amostral5)
 
-# Deixando na 6º decil
+# Leaving 6th decile
 
 base_d6 = base %>% 
   filter(decil == "6º Decil")
@@ -338,7 +338,7 @@ tot_fam_med6=svytotal(~Total, desenho_amostral6)
 
 gastomedio_fam_med6=svymean(~gasto_total, desenho_amostral6)
 
-# Deixando na 7º decil
+# Leaving 7th decile
 
 base_d7 = base %>% 
   filter(decil == "7º Decil")
@@ -377,7 +377,7 @@ tot_fam_med7=svytotal(~Total, desenho_amostral7)
 gastomedio_fam_med7=svymean(~gasto_total, desenho_amostral7)
 
 
-# Deixando na 8º decil
+# Leaving 8th decile
 
 base_d8 = base %>% 
   filter(decil == "8º Decil")
@@ -416,7 +416,7 @@ tot_fam_med8=svytotal(~Total, desenho_amostral8)
 gastomedio_fam_med8=svymean(~gasto_total, desenho_amostral8)
 
 
-# Deixando na 9º decil
+# Leaving 9th decile
 
 base_d9 = base %>% 
   filter(decil == "9º Decil")
@@ -453,7 +453,7 @@ tot_fam_med9=svytotal(~Total, desenho_amostral9)
 
 gastomedio_fam_med9=svymean(~gasto_total, desenho_amostral9)
 
-# Deixando na 10º decil
+# Leaving 10th decile
 
 base_d10 = base %>% 
   filter(decil == "10º Decil")
@@ -491,7 +491,7 @@ tot_fam_med10=svytotal(~Total, desenho_amostral10)
 
 gastomedio_fam_med10=svymean(~gasto_total, desenho_amostral10)
 
-# tamanho família no decil
+# family size in decile
 
 tot_fam_decil=c(tot_fam1[1],
               tot_fam2[1],
@@ -504,7 +504,7 @@ tot_fam_decil=c(tot_fam1[1],
               tot_fam9[1],
               tot_fam10[1])
 
-# Mediana do decil
+# Decile median
 
 mediana_decil=c(mediana1[["base_d1$gasto_total"]][1],
                 mediana2[["base_d2$gasto_total"]][1],
@@ -517,7 +517,7 @@ mediana_decil=c(mediana1[["base_d1$gasto_total"]][1],
                 mediana9[["base_d9$gasto_total"]][1],
                 mediana10[["base_d10$gasto_total"]][1])
 
-# Qtde de família abaixo da mediana
+# Number of families below the median
 
 tot_fam_abaixo_decil=c(tot_fam_med1[1],
                        tot_fam_med2[1],
@@ -530,7 +530,7 @@ tot_fam_abaixo_decil=c(tot_fam_med1[1],
                        tot_fam_med9[1],
                        tot_fam_med10[1])
                        
-# Gasto médio com transporte da família que está abaixo da mediana
+# Average family transportation spending that is below the median
 
 gasto_med_abaixo_decil=c(gastomedio_fam_med1[1],
                          gastomedio_fam_med2[1],
@@ -543,13 +543,13 @@ gasto_med_abaixo_decil=c(gastomedio_fam_med1[1],
                          gastomedio_fam_med9[1],
                          gastomedio_fam_med10[1])
 
-# Pacote para salvar no excel
+# Package to save in excel
 #install.packages("openxlsx")
 library(openxlsx)
 
-# Crie um novo workbook
+# Create a new workbook
 wb <- createWorkbook()
-# Adicione várias planilhas com diferentes resultados
+# Add multiple sheets with different results
 addWorksheet(wb, "Resultado_1")
 writeData(wb, "Resultado_1", tot_fam_decil)
 
