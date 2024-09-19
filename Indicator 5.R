@@ -1,10 +1,10 @@
 library("tidyverse")
 
-# Carregando a base:
+# Loading a base:
 load(file = "Despesa_Individual.RData")
 load(file = "Estratos_peso.RData")
 
-# Criar ID Domicilio ------------------------------------------------------
+# Create Home ID ------------------------------------------------------
 require(dplyr)
 
 despesa_ind$cod_upa=as.character(despesa_ind$cod_upa)
@@ -37,12 +37,12 @@ base_gastos_transp=base_gastos_transp %>%
   ungroup()
 
 
-# Deixando na base somente a informação da primeira linha do domicílio:
+# Leaving only the information from the first line of the household in the database:
 base =  dplyr::distinct(base_gastos_transp,DomicilioID,.keep_all = TRUE)
 base <- base %>% 
   select(estrato_pof,uf,cod_upa,DomicilioID,gasto_total,renda_anual,peso,peso_final)
 
-###  Construindo o desenho amostral da base geral:
+###  Constructing the general base sampling design:
 library(survey)
 options(survey.lonely.psu = "adjust")
 base = merge(base, post_stratification_df)
@@ -78,7 +78,7 @@ svymean(~base_mediana$valor_total, desenho_amostral)
 total=svytotal(~base_mediana$valor_total, desenho_amostral)
 write.csv2(total, file="total_dif.csv")
 
-### Criar os decis de renda
+### Create income deciles
 
 decis <- svyquantile(~base$renda_anual, desenho_amostral, quantiles = seq(0.1, 1, by = 0.1))
 
@@ -99,7 +99,7 @@ base = base %>%
 base$decil<-as.factor(base$decil)
 base$decil<-ordered(base$decil, levels=c("1º Decil","2º Decil","3º Decil","4º Decil","5º Decil",
                                                        "6º Decil","7º Decil","8º Decil","9º Decil","10º Decil"))
-# Deixando na 1º decil
+# Leaving 1st decile
 
 base_d1 = base %>% 
   filter(decil == "1º Decil")
@@ -131,8 +131,7 @@ desenho_amostral1 <-
   )
 media_dif_d1=svymean(~base_d1_tot$valor_total, desenho_amostral1)
 
-# Deixando na 2º decil
-
+# Leaving 2nd decile
 base_d2 = base %>% 
   filter(decil == "2º Decil")
 
@@ -164,7 +163,7 @@ desenho_amostral2<-
   )
 media_dif_d2=svymean(~base_d2_tot$valor_total, desenho_amostral2)
 
-# Deixando na 3º decil
+# Leaving 3rd decile
 
 base_d3 = base %>% 
   filter(decil == "3º Decil")
@@ -196,7 +195,7 @@ desenho_amostral3<-
   )
 media_dif_d3=svymean(~base_d3_tot$valor_total, desenho_amostral3)
 
-# Deixando na 4º decil
+# Leaving 4th decile
 
 base_d4 = base %>% 
   filter(decil == "4º Decil")
@@ -228,7 +227,7 @@ desenho_amostral4<-
   )
 media_dif_d4=svymean(~base_d4_tot$valor_total, desenho_amostral4)
 
-# Deixando na 5º decil
+# Leaving in the 5th decile
 
 base_d5 = base %>% 
   filter(decil == "5º Decil")
@@ -260,7 +259,7 @@ desenho_amostral5<-
   )
 media_dif_d5=svymean(~base_d5_tot$valor_total, desenho_amostral5)
 
-# Deixando na 6º decil
+# Leaving 6th decile
 
 base_d6 = base %>% 
   filter(decil == "6º Decil")
@@ -292,7 +291,7 @@ desenho_amostral6<-
   )
 media_dif_d6=svymean(~base_d6_tot$valor_total, desenho_amostral6)
 
-# Deixando na 7º decil
+# Leaving 7th decile
 
 base_d7 = base %>% 
   filter(decil == "7º Decil")
@@ -325,7 +324,7 @@ desenho_amostral7<-
   )
 media_dif_d7=svymean(~base_d7_tot$valor_total, desenho_amostral7)
 
-# Deixando na 8º decil
+# Leaving 8th decile
 
 base_d8 = base %>% 
   filter(decil == "8º Decil")
@@ -359,7 +358,7 @@ desenho_amostral8<-
 media_dif_d8=svymean(~base_d8_tot$valor_total, desenho_amostral8)
 
 
-# Deixando na 9º decil
+# Leaving 9th decile
 
 base_d9 = base %>% 
   filter(decil == "9º Decil")
@@ -392,7 +391,7 @@ desenho_amostral9<-
   )
 media_dif_d9=svymean(~base_d9_tot$valor_total, desenho_amostral9)
 
-# Deixando na 10º decil
+# Leaving 10th decile
 
 base_d10 = base %>% 
   filter(decil == "10º Decil")
@@ -424,7 +423,7 @@ desenho_amostral10<-
   )
 media_dif_d10=svymean(~base_d10_tot$valor_total, desenho_amostral10)
 
-# Media do decil
+# Decile average
 
 media_decil=c(media_dif_d1[1],
               media_dif_d2[1],
@@ -436,13 +435,13 @@ media_decil=c(media_dif_d1[1],
               media_dif_d8[1],
               media_dif_d9[1],
               media_dif_d10[1])
-# Pacote para salvar no excel
+# Package to save in excel
 #install.packages("openxlsx")
 library(openxlsx)
 
-# Crie um novo workbook
+# Create a new workbook
 wb <- createWorkbook()
-# Adicione várias planilhas com diferentes resultados
+# Add multiple sheets with different results
 addWorksheet(wb, "Resultado_1")
 writeData(wb, "Resultado_1", media_decil)
 saveWorkbook(wb, "resultados_analise7.xlsx", overwrite = TRUE)
