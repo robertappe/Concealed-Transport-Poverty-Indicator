@@ -1,4 +1,4 @@
-#Parte que vai baixar a base de CONDICAO DE VIDA
+#Part that will lower the LIVING CONDITION base
 CONDICOES_VIDA <- 
   read.fwf("CONDICOES_VIDA.txt" 
            , widths = c(2,4,1,9,2,1,2,1,6,5,1,1,1,1,1,
@@ -28,23 +28,23 @@ condicao <- CONDICOES_VIDA
 names(condicao) <- tolower( names(condicao))
 save(post_stratification_df, file = "Estratos_peso.RData")
 
-# Carregando a base:
+# Loading the base:
 load(file = "Condicoes_Vida.RData")
 load(file = "Estratos_peso.RData")
-# Calculando % de condicao de moradia:
-
+# Calculating % of housing condition:
 names(condicao)
-# V61058: Como avalia as condicoes de moradia da sua família em relacao ao 
-# servico de transporte coletivo?
 
-#1 – Bom
-#2 – Satisfatório
-#3 – Ruim
-#4 – Não tem 
+# V61058: How do you rate your family's housing conditions in relation to the
+# public transportation service?
+
+#1 – Good
+#2 – Satisfactory
+#3 – Bad
+#4 – Not have
 
 table(condicao$v61058, useNA = "always")
 
-# Criar ID Domicilio ------------------------------------------------------
+# Create Home ID ------------------------------------------------------
 require(dplyr)
 
 condicao <- condicao %>%
@@ -53,15 +53,15 @@ condicao <- condicao %>%
 condicao_vida <- condicao %>% 
   select(estrato_pof,uf,cod_upa,DomicilioID,v61058,peso,peso_final,renda_total)
 
-###  Construindo o desenho amostral
+### Building the sample design
 library(survey)
 options( survey.lonely.psu = "adjust" )
 
 base = merge(condicao_vida, post_stratification_df)
 
-# Deixando na base somente a informação da primeira linha do domicílio:
-#base_condicao_vida =  dplyr::distinct(base,DomicilioID,.keep_all = TRUE) %>%  
-#  rename(condicao_transp_coletivo = v61058)
+# Leaving only the information from the first line of the domicile in the database:
+#base_condicao_vida = dplyr::distinct(base,DomicilioID,.keep_all = TRUE) %>% 
+# rename(condicao_transp_coletivo = v61058)
 
 desenho_amostral <- 
   svydesign(
@@ -78,7 +78,7 @@ names( total_populacao ) <- c( 'pos_estrato' , 'Freq' )
 
 desenho_condicao<-postStratify(desenho_amostral , ~ pos_estrato , total_populacao)
 
-### Criar os decis de renda
+### Create income deciles
 decis <- svyquantile(~base$renda_total, desenho_amostral, quantiles = seq(0.1, 1, by = 0.1))
 
 
@@ -100,27 +100,28 @@ base$decil<-ordered(base$decil, levels=c("1º Decil","2º Decil","3º Decil","4�
                                                        "6º Decil","7º Decil","8º Decil","9º Decil","10º Decil"))
 
 
-## Varificando a quantidade de famílias por decil de renda:
+## Varying the number of families by income decile:
+
 freq_decil<-svytable( ~ base$decil , desenho_amostral )
 
 svytable( ~ base$v61058 , desenho_amostral )
 
-#### Fazendo sem a incorporaccao do desenho, seria assim:
+#### Doing it without incorporating the drawing, it would be like this:
 table(base$v61058, base$decil)
 
-# Para incorporar o desenho, preciso separar por resposta:
-# V61058: Como avalia as condicoes de moradia da sua família em relacao ao 
-# servico de transporte coletivo?
-#1 – Bom
-#2 – Satisfatório
-#3 – Ruim
-#4 – Não tem 
+# To incorporate the drawing, I need to separate by answer:
+# V61058: How do you evaluate your family's housing conditions in relation to the
+# public transportation service?
+#1 – Good
+#2 – Satisfactory
+#3 – Bad
+#4 – Not have 
 
-# Selecionando resposta BOM:
+# Selecting GOOD response:
 
-# deixando na base somente 1:
+# leaving only 1 at the base:
 base_bom <- subset(base, v61058==1)
-# Refazendo o desenho:
+# Redoing the drawing:
 desenho_amostral2 <- 
   svydesign(
     id = ~ cod_upa , 
@@ -132,14 +133,14 @@ desenho_amostral2 <-
 total_populacao <-aggregate( peso_final ~ pos_estrato , data = base_bom , sum )
 names( total_populacao ) <- c( 'pos_estrato' , 'Freq' )
 desenho_bom<-postStratify(desenho_amostral2 , ~ pos_estrato , total_populacao)
-# Calculando as quantidade de resposta BOM por decil:
+# Calculating the amount of GOOD responses by decile:
 freq_bom<-svytable( ~ base_bom$decil , desenho_bom )
 
-# Selecionando resposta SATISFATORIO:
+# Selecting SATISFACTORY answer:
 
-# deixando na base somente 2:
+# leaving only 2 at the base:
 base_sat <- subset(base, v61058==2)
-# Refazendo o desenho:
+# Redoing the drawing:
 desenho_amostral3 <- 
   svydesign(
     id = ~ cod_upa , 
@@ -151,14 +152,15 @@ desenho_amostral3 <-
 total_populacao <-aggregate( peso_final ~ pos_estrato , data = base_sat , sum )
 names( total_populacao ) <- c( 'pos_estrato' , 'Freq' )
 desenho_sat<-postStratify(desenho_amostral3 , ~ pos_estrato , total_populacao)
-# Calculando as quantidade de resposta BOM por decil:
+
+# Calculating the amount of SAT responses by decile:
 freq_sat<-svytable( ~ base_sat$decil , desenho_sat )
 
-# Selecionando resposta RUIM:
+# Selecting BAD response:
 
-# deixando na base somente 3:
+# leaving only 3 at the base:
 base_ruim <- subset(base, v61058==3)
-# Refazendo o desenho:
+# Redoing the drawing:
 desenho_amostral4 <- 
   svydesign(
     id = ~ cod_upa , 
@@ -170,14 +172,16 @@ desenho_amostral4 <-
 total_populacao <-aggregate( peso_final ~ pos_estrato , data = base_ruim , sum )
 names( total_populacao ) <- c( 'pos_estrato' , 'Freq' )
 desenho_ruim<-postStratify(desenho_amostral4 , ~ pos_estrato , total_populacao)
-# Calculando as quantidade de resposta BOM por decil:
+
+# Calculating the amount of BAD responses by decile:
 freq_ruim<-svytable( ~ base_ruim$decil , desenho_ruim )
 
-# Selecionando resposta NAO TEM:
+# Selecting answer DOES NOT HAVE:
 
-# deixando na base somente 4:
+# leaving at the base only 4:
 base_naotem <- subset(base, v61058==4)
-# Refazendo o desenho:
+
+# Redoing the drawing:
 desenho_amostral5 <- 
   svydesign(
     id = ~ cod_upa , 
@@ -189,15 +193,16 @@ desenho_amostral5 <-
 total_populacao <-aggregate( peso_final ~ pos_estrato , data = base_naotem , sum )
 names( total_populacao ) <- c( 'pos_estrato' , 'Freq' )
 desenho_naotem<-postStratify(desenho_amostral5 , ~ pos_estrato , total_populacao)
-# Calculando as quantidade de resposta BOM por decil:
+
+# Calculating the number of NO responses per decile:
 freq_naotem<-svytable( ~ base_naotem$decil , desenho_naotem )
-# Pacote para salvar no excel
+# Package to save in excel
 #install.packages("openxlsx")
 library(openxlsx)
 
-# Crie um novo workbook
+# Create a new workbook
 wb <- createWorkbook()
-# Adicione várias planilhas com diferentes resultados
+# Add multiple sheets with different results
 addWorksheet(wb, "Resultado_1")
 writeData(wb, "Resultado_1", freq_decil)
 
